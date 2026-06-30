@@ -20,6 +20,7 @@ class PomodoroSession(models.Model):
     duration_minutes = models.IntegerField(default=25)
     completed_at = models.DateTimeField(auto_now_add=True)
     completed_successfully = models.BooleanField(default=True)
+    tree_type = models.CharField(max_length=20, default='OAK')
 
     def __str__(self):
         status = "Completed" if self.completed_successfully else "Interrupted"

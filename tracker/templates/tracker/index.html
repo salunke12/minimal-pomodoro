@@ -953,6 +953,77 @@
 
         .ledger-tag-withered { background: rgba(136, 136, 136, 0.25); border: 1px solid rgba(136, 136, 136, 0.4); color: #aaaaaa; }
 
+        /* Shop Styles */
+        .shop-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .shop-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .shop-item.active {
+            border-color: rgba(var(--theme-accent-rgb), 0.4);
+            background: rgba(var(--theme-accent-rgb), 0.03);
+        }
+
+        .shop-tree-emoji {
+            font-size: 2.2rem;
+            width: 45px;
+            text-align: center;
+            user-select: none;
+        }
+
+        .shop-tree-title {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .shop-tree-cost {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #ffb703;
+        }
+
+        .btn-shop {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            min-width: 80px;
+        }
+
+        .btn-shop:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .shop-item.active .btn-shop {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+            cursor: default;
+        }
+
         @media (max-width: 1024px) {
             body {
                 padding: 0 16px;
@@ -1046,6 +1117,14 @@
                 <span class="coin-icon">🪙</span>
                 <span id="headerCoinCount" class="coin-val">0</span>
             </div>
+            <button class="nav-btn" onclick="openModal('shopModal')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                <span class="nav-btn-text">Shop</span>
+            </button>
             <button class="nav-btn" onclick="openModal('reportModal')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="20" x2="18" y2="10"></line>
@@ -1163,6 +1242,67 @@
         </section>
 
     </main>
+
+    <!-- Tree Shop Modal -->
+    <div id="shopModal" class="modal-overlay hidden" onclick="closeModalOnOuterClick(event, 'shopModal')">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Tree Shop</h3>
+                <button class="modal-close" onclick="closeModal('shopModal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div style="font-size: 0.85rem; text-align: center; color: rgba(255, 255, 255, 0.5); margin-bottom: 5px;">
+                Spend your earned focus coins to unlock new exotic trees!
+            </div>
+            
+            <div class="shop-grid">
+                <!-- Oak Tree (Free) -->
+                <div class="shop-item" id="shop-OAK">
+                    <div class="shop-tree-emoji">🌳</div>
+                    <div class="shop-tree-title">Oak Tree</div>
+                    <div class="shop-tree-cost">Free</div>
+                    <button class="btn-shop" onclick="selectTree('OAK')">Select</button>
+                </div>
+                
+                <!-- Pine Tree (Free) -->
+                <div class="shop-item" id="shop-PINE">
+                    <div class="shop-tree-emoji">🌲</div>
+                    <div class="shop-tree-title">Pine Tree</div>
+                    <div class="shop-tree-cost">Free</div>
+                    <button class="btn-shop" onclick="selectTree('PINE')">Select</button>
+                </div>
+                
+                <!-- Cherry Blossom (80 coins) -->
+                <div class="shop-item" id="shop-CHERRY">
+                    <div class="shop-tree-emoji">🌸</div>
+                    <div class="shop-tree-title">Cherry Blossom</div>
+                    <div class="shop-tree-cost">🪙 80</div>
+                    <button class="btn-shop" id="btnUnlock-CHERRY" onclick="unlockTree('CHERRY', 80)">Unlock</button>
+                </div>
+                
+                <!-- Palm Tree (150 coins) -->
+                <div class="shop-item" id="shop-PALM">
+                    <div class="shop-tree-emoji">🌴</div>
+                    <div class="shop-tree-title">Palm Tree</div>
+                    <div class="shop-tree-cost">🪙 150</div>
+                    <button class="btn-shop" id="btnUnlock-PALM" onclick="unlockTree('PALM', 150)">Unlock</button>
+                </div>
+                
+                <!-- Sunflower (250 coins) -->
+                <div class="shop-item" id="shop-SUNFLOWER">
+                    <div class="shop-tree-emoji">🌻</div>
+                    <div class="shop-tree-title">Sunflower</div>
+                    <div class="shop-tree-cost">🪙 250</div>
+                    <button class="btn-shop" id="btnUnlock-SUNFLOWER" onclick="unlockTree('SUNFLOWER', 250)">Unlock</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Settings Modal -->
     <div id="settingsModal" class="modal-overlay hidden" onclick="closeModalOnOuterClick(event, 'settingsModal')">
@@ -1302,6 +1442,12 @@
     let activeTaskLabel = "General Focus";
     let completedCyclesCount = 0;
 
+    // Tree Shop State variables
+    let unlockedTrees = ['OAK', 'PINE'];
+    let activeTree = 'OAK';
+    let spentCoins = 0;
+    let totalCoins = 0;
+
     // DOM Elements
     const clockDisplay = document.getElementById('clock');
     const startBtn = document.getElementById('startBtn');
@@ -1312,6 +1458,94 @@
     const newTaskInput = document.getElementById('newTaskInput');
     const tasksList = document.getElementById('tasksList');
     const ledgerList = document.getElementById('ledgerList');
+
+    // Shop Local Storage handlers
+    function loadShopState() {
+        const savedUnlocked = localStorage.getItem('unlocked_trees');
+        const savedActive = localStorage.getItem('active_tree');
+        const savedSpent = localStorage.getItem('spent_coins');
+        
+        if (savedUnlocked) {
+            unlockedTrees = JSON.parse(savedUnlocked);
+        }
+        if (savedActive) {
+            activeTree = savedActive;
+        }
+        if (savedSpent) {
+            spentCoins = parseInt(savedSpent) || 0;
+        }
+        
+        updateShopUI();
+    }
+
+    function updateShopUI() {
+        const trees = [
+            { id: 'OAK', cost: 0 },
+            { id: 'PINE', cost: 0 },
+            { id: 'CHERRY', cost: 80 },
+            { id: 'PALM', cost: 150 },
+            { id: 'SUNFLOWER', cost: 250 }
+        ];
+        
+        trees.forEach(t => {
+            const itemDiv = document.getElementById(`shop-${t.id}`);
+            if (!itemDiv) return;
+            
+            const btn = itemDiv.querySelector('.btn-shop');
+            
+            if (activeTree === t.id) {
+                itemDiv.classList.add('active');
+                btn.innerText = "Selected";
+                btn.disabled = true;
+            } else {
+                itemDiv.classList.remove('active');
+                btn.disabled = false;
+                if (unlockedTrees.includes(t.id)) {
+                    btn.innerText = "Select";
+                    btn.onclick = () => selectTree(t.id);
+                } else {
+                    btn.innerText = "Unlock";
+                    btn.onclick = () => unlockTree(t.id, t.cost);
+                }
+            }
+        });
+    }
+
+    function unlockTree(id, cost) {
+        playSound('click');
+        let currentCoins = totalCoins - spentCoins;
+        if (currentCoins < cost) {
+            alert(`Not enough coins! You need ${cost - currentCoins} more coins to unlock this tree.`);
+            return;
+        }
+        
+        spentCoins += cost;
+        unlockedTrees.push(id);
+        
+        localStorage.setItem('spent_coins', spentCoins);
+        localStorage.setItem('unlocked_trees', JSON.stringify(unlockedTrees));
+        
+        // Auto select newly purchased tree
+        activeTree = id;
+        localStorage.setItem('active_tree', activeTree);
+        
+        updateShopUI();
+        refreshStats();
+    }
+
+    function selectTree(id) {
+        playSound('click');
+        if (!unlockedTrees.includes(id)) return;
+        activeTree = id;
+        localStorage.setItem('active_tree', activeTree);
+        updateShopUI();
+        
+        // Update tree element visuals immediately
+        const treeGrowthEl = document.getElementById('treeGrowth');
+        if (treeGrowthEl && !isRunning && timeLeft === totalDurationSeconds) {
+            treeGrowthEl.innerText = activeTree === 'CHERRY' ? "🌸" : activeTree === 'PALM' ? "🌴" : activeTree === 'SUNFLOWER' ? "🌻" : activeTree === 'PINE' ? "🌲" : "🌳";
+        }
+    }
 
     // Load durations and user configurations from local storage
     function loadSavedSettings() {
@@ -1536,7 +1770,6 @@
         if (isRunning) {
             let abort = confirm("If you give up now, your tree will die! Are you sure you want to give up?");
             if (!abort) {
-                // Resume timer
                 return;
             }
             
@@ -1553,7 +1786,8 @@
                     label: activeTaskLabel,
                     type: currentMode,
                     minutes: elapsed || 1,
-                    completed: false
+                    completed: false,
+                    tree_type: activeTree
                 })
             })
             .then(res => {
@@ -1561,7 +1795,6 @@
                 throw new Error("Failed to save failed session");
             })
             .then(data => {
-                // Withered tree stage
                 const treeGrowthEl = document.getElementById('treeGrowth');
                 if (treeGrowthEl) {
                     treeGrowthEl.innerText = "🍂";
@@ -1586,7 +1819,7 @@
         // Show initial state tree
         const treeGrowthEl = document.getElementById('treeGrowth');
         if (treeGrowthEl) {
-            treeGrowthEl.innerText = currentMode === 'WORK' ? "🌱" : "🌸";
+            treeGrowthEl.innerText = currentMode === 'WORK' ? (activeTree === 'CHERRY' ? "🌸" : activeTree === 'PALM' ? "🌴" : activeTree === 'SUNFLOWER' ? "🌻" : activeTree === 'PINE' ? "🌲" : "🌳") : "🌸";
         }
         
         updateDisplay();
@@ -1600,20 +1833,33 @@
         const modeLabel = currentMode === 'WORK' ? 'Focus' : 'Break';
         document.title = `${m}:${s} — ${modeLabel}`;
 
-        // Live Tree growth stages based on focus progress
+        // Live Tree growth stages based on focus progress and species choice
         const progress = (totalDurationSeconds - timeLeft) / totalDurationSeconds;
         const treeGrowthEl = document.getElementById('treeGrowth');
         if (treeGrowthEl) {
             if (timeLeft <= 0) {
-                treeGrowthEl.innerText = currentMode === 'WORK' ? "🍎" : "💐";
+                if (currentMode === 'WORK') {
+                    treeGrowthEl.innerText = activeTree === 'CHERRY' ? "🍒" : activeTree === 'PALM' ? "🥥" : activeTree === 'SUNFLOWER' ? "🌻" : "🍎";
+                } else {
+                    treeGrowthEl.innerText = "💐";
+                }
             } else if (!isRunning && timeLeft === totalDurationSeconds) {
-                treeGrowthEl.innerText = currentMode === 'WORK' ? "🌱" : "🌸";
+                if (currentMode === 'WORK') {
+                    treeGrowthEl.innerText = activeTree === 'CHERRY' ? "🌸" : activeTree === 'PALM' ? "🌴" : activeTree === 'SUNFLOWER' ? "🌻" : activeTree === 'PINE' ? "🌲" : "🌳";
+                } else {
+                    treeGrowthEl.innerText = "🌸";
+                }
             } else {
                 if (currentMode === 'WORK') {
                     if (progress < 0.2) treeGrowthEl.innerText = "🌱";
                     else if (progress < 0.5) treeGrowthEl.innerText = "🌿";
-                    else if (progress < 0.8) treeGrowthEl.innerText = "🌲";
-                    else treeGrowthEl.innerText = "🌳";
+                    else {
+                        if (activeTree === 'OAK') treeGrowthEl.innerText = progress < 0.8 ? "🌲" : "🌳";
+                        else if (activeTree === 'PINE') treeGrowthEl.innerText = "🌲";
+                        else if (activeTree === 'CHERRY') treeGrowthEl.innerText = "🌸";
+                        else if (activeTree === 'PALM') treeGrowthEl.innerText = "🌴";
+                        else if (activeTree === 'SUNFLOWER') treeGrowthEl.innerText = "🌻";
+                    }
                 } else {
                     if (progress < 0.5) treeGrowthEl.innerText = "🌸";
                     else treeGrowthEl.innerText = "💐";
@@ -1643,7 +1889,8 @@
                 label: label,
                 type: type,
                 minutes: mins,
-                completed: true
+                completed: true,
+                tree_type: activeTree
             })
         })
         .then(res => {
@@ -1946,7 +2193,11 @@
             
             if (item.session_type === 'WORK') {
                 if (item.completed_successfully) {
-                    treeIcon = "🌳";
+                    if (item.tree_type === 'PINE') treeIcon = "🌲";
+                    else if (item.tree_type === 'CHERRY') treeIcon = "🌸";
+                    else if (item.tree_type === 'PALM') treeIcon = "🌴";
+                    else if (item.tree_type === 'SUNFLOWER') treeIcon = "🌻";
+                    else treeIcon = "🌳"; // default OAK
                     statusText = "Grown";
                     totalTrees++;
                 } else {
@@ -1986,9 +2237,13 @@
                 document.getElementById('statRatio').innerText = `${rate}%`;
 
                 // Update coin balance
+                totalCoins = stats.total_coins || 0;
+                let currentCoins = totalCoins - spentCoins;
+                if (currentCoins < 0) currentCoins = 0;
+                
                 const coinHeader = document.getElementById('headerCoinCount');
                 if (coinHeader) {
-                    coinHeader.innerText = stats.total_coins || 0;
+                    coinHeader.innerText = currentCoins;
                 }
 
                 // Draw virtual forest
@@ -2055,10 +2310,18 @@
                 document.getElementById('statRatio').innerText = `${totalWorkAndBreaks > 0 ? 100 : 0}%`;
                 
                 // Update coins and forest grid
+                totalCoins = stats.total_coins || 0;
+                let currentCoins = totalCoins - spentCoins;
+                if (currentCoins < 0) currentCoins = 0;
+
                 const coinHeader = document.getElementById('headerCoinCount');
                 if (coinHeader) {
-                    coinHeader.innerText = stats.total_coins || 0;
+                    coinHeader.innerText = currentCoins;
                 }
+                
+                // Initialize Shop States
+                loadShopState();
+
                 updateForestGrid(stats.forest_grid);
 
                 initCharts(stats);

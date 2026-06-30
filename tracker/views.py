@@ -36,7 +36,8 @@ def save_session(request):
                 task_label=label,
                 session_type=session_type,
                 duration_minutes=duration_minutes,
-                completed_successfully=completed
+                completed_successfully=completed,
+                tree_type=data.get('tree_type', 'OAK')
             )
             return JsonResponse({
                 'status': 'saved',
@@ -125,7 +126,7 @@ def stats_api(request):
     total_coins = total_minutes
     
     # Fetch recent tree items for the virtual forest grid (limit to 36 for a neat 6x6 grid display)
-    forest_items = list(PomodoroSession.objects.order_by('-completed_at')[:36].values('session_type', 'completed_successfully', 'task_label'))
+    forest_items = list(PomodoroSession.objects.order_by('-completed_at')[:36].values('session_type', 'completed_successfully', 'task_label', 'tree_type'))
     
     return JsonResponse({
         'total_focus_minutes': total_minutes,
