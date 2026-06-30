@@ -120,6 +120,13 @@ def stats_api(request):
     for item in breakdown:
         breakdown_dict[item['session_type']] = item['count']
         
+    # 5. Forest grid & Coins calculations (Forest inspiration)
+    # We earn 1 coin per minute focused in successfully completed sessions
+    total_coins = total_minutes
+    
+    # Fetch recent tree items for the virtual forest grid (limit to 36 for a neat 6x6 grid display)
+    forest_items = list(PomodoroSession.objects.order_by('-completed_at')[:36].values('session_type', 'completed_successfully', 'task_label'))
+    
     return JsonResponse({
         'total_focus_minutes': total_minutes,
         'total_completed_sessions': total_sessions,
@@ -131,5 +138,7 @@ def stats_api(request):
             'labels': daily_labels,
             'values': daily_sessions
         },
-        'session_breakdown': breakdown_dict
+        'session_breakdown': breakdown_dict,
+        'total_coins': total_coins,
+        'forest_grid': forest_items
     })

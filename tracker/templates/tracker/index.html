@@ -845,6 +845,114 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Forest Reward System Styles */
+        .coin-badge {
+            background: rgba(255, 183, 3, 0.1);
+            border: 1px solid rgba(255, 183, 3, 0.3);
+            color: #ffb703;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(10px);
+            user-select: none;
+        }
+
+        .tree-growth {
+            font-size: 3.2rem;
+            margin-bottom: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            filter: drop-shadow(0 0 12px rgba(var(--theme-accent-rgb), 0.2));
+            animation: bounceSoft 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes bounceSoft {
+            from { transform: translateY(0); }
+            to { transform: translateY(-4px); }
+        }
+
+        .forest-container {
+            width: 100%;
+            margin-top: 25px;
+        }
+
+        .forest-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            padding-bottom: 12px;
+        }
+
+        .forest-count {
+            font-size: 0.8rem;
+            color: var(--theme-accent);
+            font-weight: 700;
+        }
+
+        .forest-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 120px;
+            align-items: center;
+            justify-items: center;
+        }
+
+        .forest-cell {
+            font-size: 1.8rem;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            user-select: none;
+        }
+
+        .forest-cell:hover {
+            transform: scale(1.25);
+        }
+
+        .forest-tooltip {
+            visibility: hidden;
+            background: #111111;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 6px 10px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .forest-cell:hover .forest-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .ledger-tag-withered { background: rgba(136, 136, 136, 0.25); border: 1px solid rgba(136, 136, 136, 0.4); color: #aaaaaa; }
+
         @media (max-width: 1024px) {
             body {
                 padding: 0 16px;
@@ -914,6 +1022,10 @@
                 padding: 6px 12px;
                 font-size: 0.85rem;
             }
+            .coin-badge {
+                padding: 8px 10px;
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
@@ -930,6 +1042,10 @@
             Minimal Pomodoro
         </a>
         <div class="nav-buttons">
+            <div class="coin-badge" title="Coins Earned (1 coin per focus minute)">
+                <span class="coin-icon">🪙</span>
+                <span id="headerCoinCount" class="coin-val">0</span>
+            </div>
             <button class="nav-btn" onclick="openModal('reportModal')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="20" x2="18" y2="10"></line>
@@ -959,6 +1075,7 @@
                 <button id="tabLONG_BREAK" class="tab-btn" onclick="setMode('LONG_BREAK')">Long Break</button>
             </div>
             
+            <div id="treeGrowth" class="tree-growth">🌱</div>
             <div id="clock" class="clock-display">25:00</div>
             
             <div class="timer-controls">
@@ -1031,6 +1148,18 @@
                 </svg>
                 Add Task
             </button>
+        </section>
+
+        <!-- My Forest Garden Container -->
+        <section class="forest-container">
+            <div class="forest-header">
+                <span>My Forest Garden</span>
+                <span class="forest-count" id="forestCount">0 Trees</span>
+            </div>
+            <hr class="divider">
+            <div id="forestGrid" class="forest-grid">
+                <!-- Dynamically filled with trees -->
+            </div>
         </section>
 
     </main>
@@ -1404,6 +1533,45 @@
     }
 
     function resetTimer() {
+        if (isRunning) {
+            let abort = confirm("If you give up now, your tree will die! Are you sure you want to give up?");
+            if (!abort) {
+                // Resume timer
+                return;
+            }
+            
+            // Abort tree: save failed session to backend
+            let elapsed = Math.round((totalDurationSeconds - timeLeft) / 60);
+            
+            fetch('/api/save-session/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    label: activeTaskLabel,
+                    type: currentMode,
+                    minutes: elapsed || 1,
+                    completed: false
+                })
+            })
+            .then(res => {
+                if (res.ok) return res.json();
+                throw new Error("Failed to save failed session");
+            })
+            .then(data => {
+                // Withered tree stage
+                const treeGrowthEl = document.getElementById('treeGrowth');
+                if (treeGrowthEl) {
+                    treeGrowthEl.innerText = "🍂";
+                }
+                appendLedgerRow(data.task_label, elapsed || 1, currentMode, false);
+                refreshStats();
+            })
+            .catch(err => console.error("Error saving aborted session:", err));
+        }
+
         isRunning = false;
         clearInterval(timer);
         timer = null;
@@ -1414,6 +1582,13 @@
         startBtn.innerText = "Start";
         startBtn.classList.remove('running');
         document.getElementById('resetBtn').classList.add('hidden');
+        
+        // Show initial state tree
+        const treeGrowthEl = document.getElementById('treeGrowth');
+        if (treeGrowthEl) {
+            treeGrowthEl.innerText = currentMode === 'WORK' ? "🌱" : "🌸";
+        }
+        
         updateDisplay();
     }
 
@@ -1424,6 +1599,27 @@
         
         const modeLabel = currentMode === 'WORK' ? 'Focus' : 'Break';
         document.title = `${m}:${s} — ${modeLabel}`;
+
+        // Live Tree growth stages based on focus progress
+        const progress = (totalDurationSeconds - timeLeft) / totalDurationSeconds;
+        const treeGrowthEl = document.getElementById('treeGrowth');
+        if (treeGrowthEl) {
+            if (timeLeft <= 0) {
+                treeGrowthEl.innerText = currentMode === 'WORK' ? "🍎" : "💐";
+            } else if (!isRunning && timeLeft === totalDurationSeconds) {
+                treeGrowthEl.innerText = currentMode === 'WORK' ? "🌱" : "🌸";
+            } else {
+                if (currentMode === 'WORK') {
+                    if (progress < 0.2) treeGrowthEl.innerText = "🌱";
+                    else if (progress < 0.5) treeGrowthEl.innerText = "🌿";
+                    else if (progress < 0.8) treeGrowthEl.innerText = "🌲";
+                    else treeGrowthEl.innerText = "🌳";
+                } else {
+                    if (progress < 0.5) treeGrowthEl.innerText = "🌸";
+                    else treeGrowthEl.innerText = "💐";
+                }
+            }
+        }
     }
 
     // On Pomodoro Completion
@@ -1480,7 +1676,7 @@
         }
     }
 
-    function appendLedgerRow(label, minutes, type) {
+    function appendLedgerRow(label, minutes, type, completed = true) {
         const placeholder = ledgerList.querySelector('div');
         if (placeholder && placeholder.innerText.includes("No logs")) {
             ledgerList.innerHTML = "";
@@ -1488,8 +1684,16 @@
 
         const div = document.createElement('div');
         div.className = 'ledger-item';
+        
+        let tagClass = type.toLowerCase();
+        let tagLabel = type === 'WORK' ? 'Work' : type === 'SHORT_BREAK' ? 'Short Break' : 'Long Break';
+        if (!completed) {
+            tagClass = 'withered';
+            tagLabel = 'Withered';
+        }
+
         div.innerHTML = `
-            <span class="ledger-tag ledger-tag-${type.toLowerCase()}">${type === 'WORK' ? 'Work' : type === 'SHORT_BREAK' ? 'Short Break' : 'Long Break'}</span>
+            <span class="ledger-tag ledger-tag-${tagClass}">${tagLabel}</span>
             <span class="ledger-title">${escapeHTML(label)}</span>
             <span style="font-weight: 600;">${minutes}m</span>
         `;
@@ -1711,6 +1915,65 @@
         }
     }
 
+    // Dynamic updates for virtual forest garden grid
+    function updateForestGrid(forestItems) {
+        const grid = document.getElementById('forestGrid');
+        const countLabel = document.getElementById('forestCount');
+        if (!grid || !countLabel) return;
+        
+        grid.innerHTML = "";
+        let totalTrees = 0;
+
+        if (!forestItems || forestItems.length === 0) {
+            // Fill with faint placeholder trees
+            for (let i = 0; i < 6; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'forest-cell';
+                cell.style.opacity = '0.08';
+                cell.innerText = "🌳";
+                grid.appendChild(cell);
+            }
+            countLabel.innerText = "0 Trees";
+            return;
+        }
+
+        forestItems.forEach(item => {
+            const cell = document.createElement('div');
+            cell.className = 'forest-cell';
+            
+            let treeIcon = "🌱";
+            let statusText = "";
+            
+            if (item.session_type === 'WORK') {
+                if (item.completed_successfully) {
+                    treeIcon = "🌳";
+                    statusText = "Grown";
+                    totalTrees++;
+                } else {
+                    treeIcon = "🍂";
+                    statusText = "Withered";
+                }
+            } else if (item.session_type === 'SHORT_BREAK') {
+                treeIcon = "🌸";
+                statusText = "Short Break";
+            } else {
+                treeIcon = "🌴";
+                statusText = "Long Break";
+            }
+            
+            cell.innerText = treeIcon;
+            
+            const tooltip = document.createElement('span');
+            tooltip.className = 'forest-tooltip';
+            tooltip.innerText = `${item.task_label} (${statusText})`;
+            cell.appendChild(tooltip);
+            
+            grid.appendChild(cell);
+        });
+
+        countLabel.innerText = `${totalTrees} Trees`;
+    }
+
     function refreshStats() {
         fetch('/api/stats/')
             .then(res => res.json())
@@ -1721,6 +1984,15 @@
                 const totalWorkAndBreaks = stats.session_breakdown.WORK + stats.session_breakdown.SHORT_BREAK + stats.session_breakdown.LONG_BREAK;
                 const rate = totalWorkAndBreaks > 0 ? 100 : 0; 
                 document.getElementById('statRatio').innerText = `${rate}%`;
+
+                // Update coin balance
+                const coinHeader = document.getElementById('headerCoinCount');
+                if (coinHeader) {
+                    coinHeader.innerText = stats.total_coins || 0;
+                }
+
+                // Draw virtual forest
+                updateForestGrid(stats.forest_grid);
 
                 // Update week chart color dynamically matching the current theme accent
                 updateChartAccentColors(getComputedStyle(document.documentElement).getPropertyValue('--theme-accent').trim());
@@ -1762,6 +2034,7 @@
         }
     }
 
+    // Desktop notification
     function showDesktopNotification() {
         if (document.getElementById('notifEnabled').checked && Notification.permission === "granted") {
             const title = currentMode === 'WORK' ? "Cycle Complete!" : "Break Finished!";
@@ -1781,6 +2054,13 @@
                 const totalWorkAndBreaks = stats.session_breakdown.WORK + stats.session_breakdown.SHORT_BREAK + stats.session_breakdown.LONG_BREAK;
                 document.getElementById('statRatio').innerText = `${totalWorkAndBreaks > 0 ? 100 : 0}%`;
                 
+                // Update coins and forest grid
+                const coinHeader = document.getElementById('headerCoinCount');
+                if (coinHeader) {
+                    coinHeader.innerText = stats.total_coins || 0;
+                }
+                updateForestGrid(stats.forest_grid);
+
                 initCharts(stats);
             })
             .catch(err => {
